@@ -2,15 +2,15 @@
 import { initializeApp } from 'firebase/app';
 import { getFunctions, connectFunctionsEmulator, httpsCallable } from 'firebase/functions';
 
-// Firebase config - using environment variables
+// Firebase config - using environment variables (NO FALLBACKS for security)
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAod0vj_GsXVVgKeScuPJBPwB3T4RjE0E0",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "timeout-backend-340e2.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "timeout-backend-340e2",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "timeout-backend-340e2.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "176409782600",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:176409782600:web:fd0068f3745ee0da302b7d",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-B033H3NW2W"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
@@ -39,5 +39,6 @@ export const updateUserRole = httpsCallable(functions, 'updateUserRole');
 export const getUserProfile = httpsCallable(functions, 'getUserProfile');
 export const updateUserPreferences = httpsCallable(functions, 'updateUserPreferences');
 export const updateStudyStats = httpsCallable(functions, 'updateStudyStats');
+export const safeInitializeUser = httpsCallable(functions, 'safeInitializeUser');
 
 export { functions, app };

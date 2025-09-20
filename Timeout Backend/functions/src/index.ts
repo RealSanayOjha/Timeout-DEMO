@@ -37,6 +37,7 @@ export const api = functions.https.onRequest((req, res) => {
         "getUserProfile", 
         "updateUserPreferences",
         "updateStudyStats",
+        "safeInitializeUser",
         "createRoom",
         "joinRoom", 
         "leaveRoom",
@@ -56,6 +57,7 @@ export const updateUserRole = userCallables.updateUserRole;
 export const getUserProfile = userCallables.getUserProfile;
 export const updateUserPreferences = userCallables.updateUserPreferences;
 export const updateStudyStats = userCallables.updateStudyStats;
+export const safeInitializeUser = userCallables.safeInitializeUser;
 
 // Export room callable functions
 export const createRoom = roomCallables.createRoom;
