@@ -1,25 +1,16 @@
 // Firebase user handler for frontend
-import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, connectFirestoreEmulator, runTransaction } from 'firebase/firestore';
+import { getApp } from 'firebase/app';
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// Get the existing Firebase app (already initialized in config/firebase.ts)
+const app = getApp();
+export const db = getFirestore(app);
 
 // Connect to Firestore emulator in development
 if (import.meta.env.DEV) {
   try {
-    connectFirestoreEmulator(db, 'localhost', 8090);
-    console.log('🔥 Connected to Firestore emulator on port 8090');
+    connectFirestoreEmulator(db, 'localhost', 8092);
+    console.log('🔥 Connected to Firestore emulator on port 8092');
   } catch (error) {
     // This is expected if already connected
     if (error.code === 'failed-precondition') {
@@ -28,9 +19,7 @@ if (import.meta.env.DEV) {
       console.warn('⚠️ Could not connect to Firestore emulator:', error);
     }
   }
-}
-
-// Data preservation rules - defines what should never be overwritten
+}// Data preservation rules - defines what should never be overwritten
 const PRESERVATION_RULES = {
   // NEVER TOUCH - Critical data that should be preserved forever
   IMMUTABLE: [
@@ -249,8 +238,12 @@ export const ensureUserExists = async (clerkUser: any) => {
     throw error;
   }
 };
+  } catch (error) {
+    console.error('❌ Error ensuring user exists:', error);
+    throw error;
+  }
+};
 
-// Function to get user data
 export const getUserData = async (clerkUserId: string) => {
   try {
     const userDocRef = doc(db, 'users', clerkUserId);
