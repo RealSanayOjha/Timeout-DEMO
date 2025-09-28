@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   Camera, 
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getRoomDetails, leaveRoom, updateParticipantStatus } from "@/config/firebase";
+import { useAutoLeave } from "@/hooks/useAutoLeave";
 
 interface GroupSessionProps {
   groupName: string;
@@ -50,6 +51,17 @@ const VIDEO_CONSTRAINTS = {
 
 export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionProps) {
   const { user } = useUser();
+  
+  // Auto-leave hook for study rooms
+  useAutoLeave({
+    userId: user?.id,
+    roomId: groupId,
+    onLeave: () => {
+      console.log('🚪 Auto-leaving study room');
+      onLeaveGroup();
+    }
+  });
+  
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [cameraEnabled, setCameraEnabled] = useState(false);
@@ -62,7 +74,7 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
   const [nextCheckIn, setNextCheckIn] = useState<Date | null>(null);
   const [cameraError, setCameraError] = useState<CameraError | null>(null);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [streamActive, setStreamActive] = useState(false); // Track if stream is actually active
+  const [streamActive, setStreamActive] = useState(false);
   const [isCapturingPhoto, setIsCapturingPhoto] = useState(false);
   const [lastCapturedPhoto, setLastCapturedPhoto] = useState<string | null>(null);
   const [checkInCount, setCheckInCount] = useState(0);
@@ -72,7 +84,7 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const checkInTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isMountedRef = useRef(true); // Track if component is mounted
+  const isMountedRef = useRef(true);
 
   // Cleanup function to prevent memory leaks
   const cleanupCamera = useCallback(() => {
@@ -126,7 +138,7 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
       };
     }
     
-    // Check HTTPS requirement (getUserMedia requires secure context)
+    // Check HTTPS requirement
     if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
       return {
         type: 'browser_not_supported',
@@ -166,12 +178,11 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
     };
   };
 
-  // Proper video lifecycle management - FIXED
+  // Proper video lifecycle management
   useEffect(() => {
     const video = videoRef.current;
     const stream = streamRef.current;
     
-    // Only proceed if we have both video element and stream, and camera is enabled
     if (!video || !stream || !cameraEnabled) return;
 
     const handleLoadedMetadata = () => {
@@ -194,7 +205,7 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
     const handlePlay = () => {
       if (isMountedRef.current) {
         setStreamActive(true);
-        setCameraError(null); // Clear any playback errors
+        setCameraError(null);
       }
     };
 
@@ -208,7 +219,7 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
       }
     };
 
-    // Assign stream to video element - DO THIS ONLY ONCE HERE
+    // Assign stream to video element
     video.srcObject = stream;
 
     // Add event listeners
@@ -224,7 +235,7 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('error', handleError);
     };
-  }, [cameraEnabled]); // FIXED: Only depend on cameraEnabled, not streamRef.current
+  }, [cameraEnabled]);
 
   // Load room data and participants from backend
   useEffect(() => {
@@ -252,7 +263,7 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
         
         setParticipants(participantsList);
         
-        // Set initial user status based on current user's isActive state
+        // Set initial user status
         const currentUserId = user?.id || 'demo-user';
         const currentUserData = roomInfo.participants?.[currentUserId];
         if (currentUserData) {
@@ -277,20 +288,22 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Schedule check-in with proper cleanup - Modified for 15-20 second intervals
+  // Schedule check-in
   const scheduleCheckIn = useCallback(() => {
-    if (!isMountedRef.current || !cameraEnabled || !isTimerRunning || !automaticMonitoringEnabled) return;
+    if (!isMountedRef.current || !cameraEnabled || !isTimerRunning) return;
     
-    // Changed to 15-20 seconds for continuous monitoring
     const delay = (15 + Math.random() * 5) * 1000; // 15-20 seconds
     const nextCheckTime = new Date(Date.now() + delay);
     
     setNextCheckIn(nextCheckTime);
     
     checkInTimeoutRef.current = setTimeout(() => {
-      if (isMountedRef.current && cameraEnabled && isTimerRunning && automaticMonitoringEnabled) {
-        // Auto-capture instead of showing prompt
-        handleAutomaticPhotoCapture();
+      if (isMountedRef.current && cameraEnabled && isTimerRunning) {
+        if (automaticMonitoringEnabled) {
+          handleAutomaticPhotoCapture();
+        } else {
+          setShowCheckInPrompt(true);
+        }
       }
     }, delay);
   }, [cameraEnabled, isTimerRunning, automaticMonitoringEnabled]);
@@ -305,7 +318,6 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
       }, 1000);
     }
 
-    // Always return cleanup function
     return () => {
       if (interval) {
         clearInterval(interval);
@@ -316,10 +328,8 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
   // Automatic monitoring effect
   useEffect(() => {
     if (automaticMonitoringEnabled && cameraEnabled && isTimerRunning) {
-      // Start automatic monitoring immediately
       scheduleCheckIn();
     } else {
-      // Stop automatic monitoring
       if (checkInTimeoutRef.current) {
         clearTimeout(checkInTimeoutRef.current);
         checkInTimeoutRef.current = null;
@@ -356,7 +366,6 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
     try {
       setLoading(true);
       
-      // Call backend leaveRoom function
       await leaveRoom({ 
         roomId: groupId,
         userId: user?.id || 'demo-user'
@@ -365,10 +374,8 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
       console.log('✅ Left room successfully');
     } catch (err) {
       console.error('❌ Failed to leave room:', err);
-      // Still proceed to leave locally even if backend call fails
     } finally {
       setLoading(false);
-      // Call the original onLeaveGroup to navigate away
       onLeaveGroup();
     }
   };
@@ -378,16 +385,13 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
       setLoading(true);
       const newStatus = userStatus === 'studying' ? 'away' : 'studying';
       
-      // Update status in backend
       await updateParticipantStatus({ 
         roomId: groupId,
         isActive: newStatus === 'studying',
         userId: user?.id || 'demo-user'
       });
       
-      // Update local state
       setUserStatus(newStatus);
-      
       console.log(`✅ Status updated to: ${newStatus}`);
     } catch (err) {
       console.error('❌ Failed to update status:', err);
@@ -401,40 +405,19 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
     try {
       setCameraError(null);
       
-      // Check browser support first
       const browserError = checkBrowserSupport();
       if (browserError) {
         setCameraError(browserError);
         return;
       }
       
-      // Get user media with proper constraints
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: VIDEO_CONSTRAINTS,
         audio: false 
       });
       
-      // Check video tracks
-      const videoTracks = stream.getVideoTracks();
-      videoTracks.forEach((track, index) => {
-        // Track validation for debugging in development only
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`Track ${index}:`, {
-            kind: track.kind,
-            enabled: track.enabled,
-            readyState: track.readyState,
-            label: track.label
-          });
-        }
-      });
-      
-      // Store stream reference
       streamRef.current = stream;
-      
-      // Enable camera - this will trigger useEffect to handle video lifecycle
       setCameraEnabled(true);
-      
-      // Schedule first check-in
       scheduleCheckIn();
       
     } catch (error) {
@@ -449,7 +432,6 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
 
   const handleStartTimer = () => {
     setIsTimerRunning(true);
-    // Restart check-in scheduling when timer starts
     if (cameraEnabled) {
       scheduleCheckIn();
     }
@@ -457,7 +439,6 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
 
   const handlePauseTimer = () => {
     setIsTimerRunning(false);
-    // Clear check-in when timer is paused
     if (checkInTimeoutRef.current) {
       clearTimeout(checkInTimeoutRef.current);
       checkInTimeoutRef.current = null;
@@ -466,26 +447,21 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
     }
   };
 
-  // Automatic photo capture for continuous monitoring (15-20 second intervals)
+  // Automatic photo capture
   const handleAutomaticPhotoCapture = async () => {
     if (!videoRef.current || !streamRef.current) {
-      console.warn('Camera not available for automatic capture');
-      // Continue scheduling even if capture fails
       scheduleCheckIn();
       return;
     }
 
     const video = videoRef.current;
     
-    // Skip if video not ready
     if (video.videoWidth === 0 || video.videoHeight === 0) {
-      console.warn('Video not ready for automatic capture');
       scheduleCheckIn();
       return;
     }
 
     try {
-      // Create canvas to capture photo silently
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
       
@@ -496,45 +472,23 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       
-      // Mirror the image to match what user sees
       context.scale(-1, 1);
       context.drawImage(video, -canvas.width, 0);
       
-      // Convert to data URL for storage/verification
-      const dataURL = canvas.toDataURL('image/jpeg', 0.7); // Lower quality for frequent captures
+      const dataURL = canvas.toDataURL('image/jpeg', 0.7);
       setLastCapturedPhoto(dataURL);
       
-      // Convert to blob and potentially send to verification system
       canvas.toBlob(async (blob) => {
         if (blob && isMountedRef.current) {
-          // Here you could integrate with the verification system
-          // For now, just increment count and schedule next capture
           setCheckInCount(prev => prev + 1);
-          
-          // Optional: Send to backend verification system
-          try {
-            // Example integration with community verification
-            // await createStudyCheckIn({
-            //   roomId: groupId,
-            //   checkInType: 'photo',
-            //   photoUrl: dataURL,
-            //   userId: user?.id || 'demo-user'
-            // });
-          } catch (error) {
-            console.warn('Failed to submit automatic check-in:', error);
-          }
-          
-          // Schedule next automatic capture
           scheduleCheckIn();
         }
       }, 'image/jpeg', 0.7);
       
-      // Clean up canvas
       canvas.remove();
       
     } catch (error) {
       console.error('❌ Error in automatic photo capture:', error);
-      // Continue scheduling even if capture fails
       scheduleCheckIn();
     }
   };
@@ -550,7 +504,6 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
 
     const video = videoRef.current;
     
-    // Defensive checks for video dimensions
     if (video.videoWidth === 0 || video.videoHeight === 0) {
       setCameraError({
         type: 'playback_error',
@@ -563,7 +516,6 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
     setCameraError(null);
 
     try {
-      // Create canvas to capture photo
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
       
@@ -574,35 +526,27 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       
-      // Mirror the image to match what user sees
       context.scale(-1, 1);
       context.drawImage(video, -canvas.width, 0);
       
-      // Convert to data URL for preview
       const dataURL = canvas.toDataURL('image/jpeg', 0.8);
       setLastCapturedPhoto(dataURL);
       
-      // Convert to blob for "upload" (currently just simulated)
       canvas.toBlob((blob) => {
         if (blob && isMountedRef.current) {
-          // Simulate upload delay
           setTimeout(() => {
             if (isMountedRef.current) {
               setCheckInCount(prev => prev + 1);
               setShowCheckInPrompt(false);
               setIsCapturingPhoto(false);
-              
-              // Schedule next check-in only after successful capture
               scheduleCheckIn();
             }
-          }, 1000); // Simulate 1 second upload time
-          
+          }, 1000);
         } else {
           throw new Error('Failed to create photo blob');
         }
       }, 'image/jpeg', 0.8);
       
-      // Clean up canvas
       canvas.remove();
       
     } catch (error) {
@@ -619,7 +563,7 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
     <div className="p-6 space-y-6">
       {/* Loading State */}
       {loading && (
-        <Card className="glass p-6">
+        <Card className="p-6">
           <div className="flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             <span className="ml-3 text-muted-foreground">Loading room data...</span>
@@ -649,7 +593,7 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
             variant={userStatus === 'studying' ? 'default' : 'outline'} 
             onClick={handleStatusToggle}
             disabled={loading}
-            className={userStatus === 'studying' ? 'bg-success hover:bg-success/90' : ''}
+            className={userStatus === 'studying' ? 'bg-green-600 hover:bg-green-700' : ''}
           >
             {userStatus === 'studying' ? (
               <BookOpen className="h-4 w-4 mr-2" />
@@ -749,8 +693,7 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
               </div>
             </div>
 
-            {/* Debug Information - Enhanced with new state */}
-            {/* Error Display - Fixed to show proper error message */}
+            {/* Error Display */}
             {cameraError && (
               <Alert className="border-destructive bg-destructive/5 mb-4">
                 <AlertCircle className="h-4 w-4 text-destructive" />
@@ -760,7 +703,7 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
               </Alert>
             )}
 
-            {/* Video Container - Enhanced visibility logic */}
+            {/* Video Container */}
             <div className="relative">
               <video
                 ref={videoRef}
@@ -801,13 +744,7 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
                     </div>
                   )}
                   
-                  {/* Debug info overlay - Enhanced */}
-                  <div className="absolute bottom-2 left-2 text-xs bg-black/50 text-white p-1 rounded">
-                    Stream: {streamRef.current ? 'Active' : 'None'} | 
-                    Playing: {streamActive ? 'Yes' : 'No'}
-                  </div>
-                  
-                  {/* Manual play button - Enhanced with better state checking */}
+                  {/* Manual play button */}
                   <button 
                     onClick={async () => {
                       if (videoRef.current && streamRef.current) {
@@ -828,7 +765,7 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
                     ▶️ Play
                   </button>
                   
-                  {/* Loading indicator when video not ready */}
+                  {/* Loading indicator */}
                   {!streamActive && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                       <div className="text-white text-sm">Initializing camera...</div>
@@ -864,7 +801,7 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
             </Card>
           )}
 
-          {/* Photo Check-in Prompt - Enhanced with states */}
+          {/* Photo Check-in Prompt */}
           {showCheckInPrompt && (
             <Card className="p-4 border-2 border-primary bg-primary/5">
               <div className="text-center">
@@ -895,7 +832,6 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
                   )}
                 </Button>
                 
-                {/* Skip option for emergencies */}
                 <div className="mt-3">
                   <Button 
                     variant="ghost" 
@@ -957,23 +893,25 @@ export function GroupSession({ groupName, groupId, onLeaveGroup }: GroupSessionP
 
           {/* Study Stats */}
           <Card className="p-6">
-            <h3 className="font-semibold mb-4">Study Stats</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Session Time:</span>
-                <span className="font-medium">{formatTime(timerSeconds)}</span>
+            <CardHeader className="px-0 pt-0">
+              <CardTitle className="text-lg">Study Stats</CardTitle>
+            </CardHeader>
+            <CardContent className="px-0 pb-0">
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Session Time:</span>
+                  <span className="font-medium">{formatTime(timerSeconds)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Active Participants:</span>
+                  <span className="font-medium">{participants.filter(p => p.isStudying).length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Check-ins:</span>
+                  <span className="font-medium">{checkInCount}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Active Participants:</span>
-                <span className="font-medium">{participants.filter(p => p.isStudying).length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Next Check-in:</span>
-                <span className="font-medium">
-                  {nextCheckIn ? `${Math.ceil((nextCheckIn.getTime() - Date.now()) / 1000)}s` : 'N/A'}
-                </span>
-              </div>
-            </div>
+            </CardContent>
           </Card>
         </div>
       </div>

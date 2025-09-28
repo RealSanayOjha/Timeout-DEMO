@@ -334,6 +334,7 @@ export const getPublicRooms = onCall(
         // Remove sensitive participant data for public listing
         return {
           ...data,
+          id: doc.id, // Include the Firestore document ID
           participants: Object.keys(data.participants).length // Just count
         };
       });

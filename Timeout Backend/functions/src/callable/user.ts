@@ -315,10 +315,21 @@ export const safeInitializeUser = onCall(
   },
   async (request: CallableRequest) => {
     try {
-      // Get authenticated user ID
-      const userId = getAuthenticatedUserId(request);
-
-      const { email, firstName, lastName, avatarUrl } = request.data;
+      const { email, firstName, lastName, avatarUrl, userId: fallbackUserId } = request.data;
+      
+      // Get authenticated user ID with emulator fallback
+      let userId: string;
+      try {
+        userId = getAuthenticatedUserId(request);
+      } catch (authError) {
+        // In emulator mode, allow fallback to provided userId
+        if (process.env.FUNCTIONS_EMULATOR === 'true' && fallbackUserId) {
+          console.log('🔧 Using fallback userId in emulator mode:', fallbackUserId);
+          userId = fallbackUserId;
+        } else {
+          throw authError;
+        }
+      }
 
       if (!email) {
         throw new HttpsError('invalid-argument', 'Email is required for user initialization');

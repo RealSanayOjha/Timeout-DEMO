@@ -4,6 +4,7 @@ import { Timestamp } from "firebase-admin/firestore";
 export * from "./user";
 export * from "./room";
 export * from "./session";
+export * from "./classroom";
 // export * from "./clerk"; // Temporarily disabled - missing file
 
 // Common types

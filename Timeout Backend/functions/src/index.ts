@@ -15,6 +15,7 @@ import * as userCallables from "./callable/user";
 import * as roomCallables from "./callable/room";
 import * as digitalDetoxCallables from "./callable/digitalDetox";
 import * as communityCallables from "./callable/community";
+import * as classroomCallables from "./callable/classroom";
 
 // Health check endpoint
 export const healthCheck = functions.https.onRequest((req, res) => {
@@ -52,7 +53,17 @@ export const api = functions.https.onRequest((req, res) => {
         "getUserRestrictions", 
         "getFocusAnalytics",
         "updateDigitalWellbeing",
-        "recordBlockedUsage"
+        "recordBlockedUsage",
+        "createClassroom",
+        "joinClassroom",
+        "leaveClassroom",
+        "getMyClassrooms",
+        "getAvailableClassrooms",
+        "startClassSession",
+        "endClassSession",
+        "joinLiveSession",
+        "leaveLiveSession",
+        "updateSessionParticipant"
       ],
     },
   });
@@ -92,3 +103,15 @@ export const votePhotoVerification = communityCallables.votePhotoVerification;
 export const getLeaderboard = communityCallables.getLeaderboard;
 export const getUserAchievements = communityCallables.getUserAchievements;
 export const createStudyGroup = communityCallables.createStudyGroup;
+
+// Export classroom callable functions
+export const createClassroom = classroomCallables.createClassroom;
+export const joinClassroom = classroomCallables.joinClassroom;
+export const leaveClassroom = classroomCallables.leaveClassroom;
+export const getMyClassrooms = classroomCallables.getMyClassrooms;
+export const getAvailableClassrooms = classroomCallables.getAvailableClassrooms;
+export const startClassSession = classroomCallables.startClassSession;
+export const endClassSession = classroomCallables.endClassSession;
+export const joinLiveSession = classroomCallables.joinLiveSession;
+export const leaveLiveSession = classroomCallables.leaveLiveSession;
+export const updateSessionParticipant = classroomCallables.updateSessionParticipant;

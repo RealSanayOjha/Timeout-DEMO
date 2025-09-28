@@ -1,77 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* TimeOut Design System - Focus & Study App */
+/* Forest Flow Focus Design System - Nature-inspired Smart Education Platform */
 
 @layer base {
   :root {
-    /* Background System */
-    --background: 240 100% 97%;
-    --background-secondary: 240 50% 95%;
-    --foreground: 158 82% 15%;
+    /* Core Brand Colors - Forest Theme */
+    --primary: 145 63% 42%;           /* Forest Green */
+    --primary-foreground: 0 0% 98%;
+    --primary-hover: 145 68% 36%;
+    --primary-light: 145 45% 65%;
+    --primary-dark: 145 75% 28%;
 
-    /* Card System */
-    --card: 240 50% 95%;
-    --card-foreground: 158 82% 15%;
-    --card-border: 158 20% 80%;
+    /* Secondary - Natural Accents */
+    --secondary: 41 72% 58%;          /* Warm Amber */
+    --secondary-foreground: 0 0% 15%;
+    --secondary-hover: 41 76% 52%;
+    --secondary-light: 41 85% 75%;
 
-    /* Glass Effect */
-    --glass: 240 100% 98%;
-    --glass-border: 158 20% 85%;
+    /* Success & Growth */
+    --success: 142 71% 45%;           /* Fresh Green */
+    --success-foreground: 0 0% 98%;
+    --success-light: 142 60% 85%;
 
-    /* Brand Colors - Green Focus Theme */
-    --primary: 158 82% 30%;
-    --primary-foreground: 240 100% 99%;
-    --primary-glow: 158 82% 40%;
+    /* Warning & Focus */
+    --warning: 35 91% 62%;           /* Golden Yellow */
+    --warning-foreground: 0 0% 15%;
+    --warning-light: 35 95% 90%;
 
-    --secondary: 158 20% 85%;
-    --secondary-foreground: 158 82% 20%;
+    /* Error & Alert */
+    --destructive: 0 72% 51%;        /* Natural Red */
+    --destructive-foreground: 0 0% 98%;
+    --destructive-light: 0 70% 90%;
 
-    /* Interactive Elements */
-    --muted: 158 20% 90%;
-    --muted-foreground: 158 30% 40%;
-
-    --accent: 158 82% 30%;
-    --accent-foreground: 240 100% 99%;
-
-    /* Status Colors */
-    --success: 142 76% 36%;
-    --success-foreground: 240 100% 99%;
+    /* Neutral Palette */
+    --background: 0 0% 100%;
+    --foreground: 145 15% 15%;       /* Deep Forest */
     
-    --warning: 38 92% 45%;
-    --warning-foreground: 240 100% 99%;
+    --muted: 145 8% 96%;             /* Light Forest Mist */
+    --muted-foreground: 145 12% 45%;
     
-    --destructive: 0 84% 50%;
-    --destructive-foreground: 240 100% 99%;
+    --accent: 145 20% 92%;           /* Soft Forest */
+    --accent-foreground: 145 15% 25%;
 
-    /* Live/Active States */
-    --live: 0 84% 60%;
-    --live-glow: 0 84% 70%;
+    --card: 0 0% 100%;
+    --card-foreground: 145 15% 15%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 145 15% 15%;
 
-    /* Borders & Inputs */
-    --border: 158 20% 80%;
-    --input: 158 20% 90%;
-    --ring: 158 82% 30%;
+    --border: 145 15% 88%;
+    --input: 145 15% 90%;
+    --ring: 145 63% 42%;
 
-    /* Design Tokens */
-    --radius: 1rem;
-    --radius-sm: 0.75rem;
-    --radius-lg: 1.5rem;
+    /* Sidebar Theme */
+    --sidebar-background: 145 25% 97%;
+    --sidebar-foreground: 145 15% 25%;
+    --sidebar-primary: 145 63% 42%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 145 20% 92%;
+    --sidebar-accent-foreground: 145 15% 25%;
+    --sidebar-border: 145 15% 88%;
+    --sidebar-ring: 145 63% 42%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-glass: linear-gradient(135deg, hsl(var(--glass) / 0.8), hsl(var(--glass) / 0.4));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(158 100% 45%));
+    /* Enhanced Design Tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--secondary-light)));
+    --gradient-nature: linear-gradient(135deg, hsl(145 63% 42%), hsl(120 45% 55%), hsl(95 35% 65%));
+    --gradient-wellness: linear-gradient(135deg, hsl(var(--success)), hsl(var(--secondary-light)));
+    
+    /* Shadows & Effects */
+    --shadow-sm: 0 1px 2px 0 hsl(145 25% 15% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(145 25% 15% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(145 25% 15% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(145 25% 15% / 0.1);
+    --shadow-nature: 0 8px 30px -8px hsl(145 63% 42% / 0.3);
+    --shadow-wellness: 0 8px 30px -8px hsl(142 71% 45% / 0.25);
 
-    /* Shadows */
-    --shadow-glass: 0 8px 32px hsl(var(--primary) / 0.12);
-    --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.3);
-    --shadow-card: 0 4px 24px hsl(220 27% 2% / 0.4);
+    /* Spacing & Layout */
+    --radius: 0.75rem;
+    --radius-sm: 0.5rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
 
-    /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    /* Animation Timings */
+    --duration-fast: 150ms;
+    --duration-normal: 300ms;
+    --duration-slow: 500ms;
+    
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .dark {
+    /* Dark Mode - Deep Forest Night */
+    --background: 145 25% 8%;         /* Deep Forest Night */
+    --foreground: 145 15% 92%;
+    
+    --muted: 145 20% 12%;
+    --muted-foreground: 145 12% 65%;
+    
+    --accent: 145 25% 15%;
+    --accent-foreground: 145 15% 85%;
+
+    --card: 145 25% 10%;
+    --card-foreground: 145 15% 92%;
+    
+    --popover: 145 25% 10%;
+    --popover-foreground: 145 15% 92%;
+
+    --primary: 145 55% 55%;           /* Brighter in dark mode */
+    --primary-foreground: 145 25% 8%;
+    --primary-hover: 145 60% 60%;
+
+    --secondary: 41 65% 65%;
+    --secondary-foreground: 145 25% 8%;
+
+    --border: 145 25% 18%;
+    --input: 145 25% 15%;
+    --ring: 145 55% 55%;
+
+    /* Dark Sidebar */
+    --sidebar-background: 145 30% 6%;
+    --sidebar-foreground: 145 15% 85%;
+    --sidebar-primary: 145 55% 55%;
+    --sidebar-primary-foreground: 145 25% 8%;
+    --sidebar-accent: 145 25% 12%;
+    --sidebar-accent-foreground: 145 15% 85%;
+    --sidebar-border: 145 25% 18%;
+
+    /* Dark Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.2);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.3);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.4);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.5);
+    --shadow-nature: 0 8px 30px -8px hsl(145 55% 55% / 0.4);
+    --shadow-wellness: 0 8px 30px -8px hsl(142 65% 60% / 0.3);
   }
 }
 
@@ -81,32 +148,6 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-
-  /* Glass Effect Utilities */
-  .glass {
-    background: hsl(var(--glass) / 0.8);
-    border: 1px solid hsl(var(--glass-border));
-    backdrop-filter: blur(16px);
-    box-shadow: var(--shadow-glass);
-  }
-
-  .hero-gradient {
-    background: var(--gradient-hero);
-  }
-
-  .glow {
-    box-shadow: var(--shadow-glow);
-  }
-
-  /* Animation Classes */
-  .transition-smooth {
-    transition: var(--transition-smooth);
-  }
-
-  .transition-bounce {
-    transition: var(--transition-bounce);
+    @apply bg-background text-foreground;
   }
 }
